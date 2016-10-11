@@ -1,0 +1,46 @@
+syntax="proto3";
+package specs;
+
+service PageElement {
+	rpc Describe(Empty) returns (PageElementDescription);
+	rpc Render(RenderArgs) returns (PageRender);
+}
+
+message PageElementDescription {
+	string Name = 1; // should be an url safe name; ex: header, related_products
+	string Version = 2; // version identifier, ex: 2, 0.0.1
+	repeated PageElementIncludes Includes = 3; // list of page elements included (required) by this element
+}
+
+message PageElementIncludes {
+	string Name = 1; // should match value provided in PageElement.Name
+}
+
+message RenderArgs {
+	map<string, string> args = 1;
+}
+
+message Empty {
+}
+
+message PageRender {
+	string html = 1;
+	repeated StaticAsset assets = 2;
+	repeated Meta meta = 3;
+	string pageTitle = 4;
+}
+
+message StaticAsset {
+	enum Type {
+		JS = 0;
+		CSS = 1;
+	}
+	Type type = 1;
+	string path = 2;
+}
+
+message Meta {
+	string Name = 1;
+	string Content = 2;
+	string HttpEquiv = 3;
+}

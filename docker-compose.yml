@@ -1,0 +1,76 @@
+version: "2"
+services:
+  tmpl:
+    image: golang:1.7.1-alpine
+    volumes:
+      - ./bin:/usr/local/bin
+    environment:
+      - PORT=80
+      - CONSUL=consul:8500
+    expose:
+      - "80"
+
+  site:
+    extends:
+      service: tmpl
+    dns:
+      - 172.18.0.2
+    command:
+      - /usr/local/bin/micro-site
+    environment:
+      - DOMAIN=micro.site
+
+  page-home-v1:
+    extends:
+      service: tmpl
+    command:
+      - /usr/local/bin/micro-page-home-v1
+
+  navigation:
+    extends:
+      service: tmpl
+    command:
+      - /usr/local/bin/micro-navigation
+
+  header:
+    extends:
+      service: tmpl
+    command:
+      - /usr/local/bin/micro-header
+
+  footer:
+    extends:
+      service: tmpl
+    command:
+      - /usr/local/bin/micro-footer
+
+  recommendations:
+    extends:
+      service: tmpl
+    command:
+      - /usr/local/bin/micro-recommendations
+
+  consul:
+    image: consul:v0.7.0
+    command:
+      - agent
+      - -server
+      - -bootstrap-expect=1
+      - -ui
+      - -client=0.0.0.0
+      - -dns-port=53
+    expose:
+      - "53"
+      - "53/udp"
+    ports:
+      - 8500:8500
+    environment:
+      - CONSUL_ALLOW_PRIVILEGED_PORTS=1
+
+  traefik:
+    image: traefik:v1.0.3
+    volumes:
+      - ./services/traefik/traefik.toml:/etc/traefik/traefik.toml
+    ports:
+      - 8088:8080
+      - 8080:80
