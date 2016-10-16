@@ -1,4 +1,4 @@
-logLevel = "INFO"
+logLevel = "WARN"
 
 [web]
 address = ":8080"
@@ -7,17 +7,3 @@ address = ":8080"
 endpoint = "consul:8500"
 domain = "micro.site"
 prefix = "traefik"
-
-# [file]
-
-# [backends]
-#     [backends.registry]
-#         [backends.registry.servers.server1]
-#         url = "http://10.2.3.20:5000"
-#         weight = 10
-
-# [frontends]
-#     [frontends.registry]
-#     backend = "registry"
-#         [frontends.registry.routes.test_1]
-#         rule = "Host:registry.talam.3fs.si"

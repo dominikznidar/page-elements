@@ -10,8 +10,8 @@ import (
 var element *pageElement.Element
 
 const (
-	elementName    = "recommendations"
-	elementVersion = "v1"
+	elementName    = "page-home"
+	elementVersion = "v2"
 )
 
 type server struct{}
@@ -20,11 +20,22 @@ func (s *server) Describe(_ context.Context, _ *specs.RenderArgs) (*specs.PageEl
 	return &specs.PageElementDescription{
 		Name:    elementName,
 		Version: elementVersion,
+		Includes: []*specs.PageElementIncludes{
+			&specs.PageElementIncludes{Name: "header"},
+			&specs.PageElementIncludes{Name: "footer"},
+			&specs.PageElementIncludes{Name: "recommendations"},
+		},
 	}, nil
 }
 
 func (s *server) Render(_ context.Context, _ *specs.RenderArgs) (*specs.PageRender, error) {
-	return element.Render("template.html", nil)
+	r, err := element.Render("template.html", nil)
+	if err != nil {
+		return r, err
+	}
+
+	r.PageTitle = "Micro Home Page v2"
+	return r, nil
 }
 
 func main() {

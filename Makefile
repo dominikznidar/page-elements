@@ -4,7 +4,8 @@ BUILDLESS_CONTAINERS := consul traefik
 
 .PHONY: vendor specs
 
-up: up/site up/page-home-v1
+up: up/consul up/traefik wait up/site up/page-home-v1 up/header up/footer \
+	up/recommendations up/navigation
 
 up/%: build/% stop/%
 	docker-compose up -d $*
@@ -39,3 +40,7 @@ specs:
 clean:
 	rm bin/*
 	docker-compose down
+
+wait:
+	@echo "Waiting a while for consul to wake up ..."
+	sleep 10

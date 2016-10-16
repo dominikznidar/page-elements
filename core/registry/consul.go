@@ -16,6 +16,7 @@ type Registry struct {
 	serviceID      string
 	serviceName    string
 	serviceVersion string
+	systemTool     bool
 }
 
 var (
@@ -27,7 +28,7 @@ func init() {
 	traefikDomain = envString("DOMAIN", "")
 }
 
-func NewRegistry(name, version string) (*Registry, error) {
+func NewRegistry(name, version string, systemTool bool) (*Registry, error) {
 	config := consul.DefaultConfig()
 	config.Address = consulAddr
 	c, err := consul.NewClient(config)
@@ -35,15 +36,12 @@ func NewRegistry(name, version string) (*Registry, error) {
 		client:         c,
 		serviceName:    name,
 		serviceVersion: version,
+		systemTool:     systemTool,
 	}, err
 }
 
 func (r *Registry) Register() error {
 	r.serviceID = uuid.NewV4().String()
-
-	// hostname, _ := os.Hostname()
-	ip := GetLocalIP()
-	log.Printf("IP for service %s set to %s", r.serviceName, ip)
 
 	// compose tags
 	tags := []string{r.serviceVersion}
@@ -52,6 +50,9 @@ func (r *Registry) Register() error {
 	} else {
 		tags = append(tags, "traefik.frontend.rule=Host:"+traefikDomain)
 	}
+	if !r.systemTool {
+		tags = append(tags, "micro-element")
+	}
 
 	// register the service
 	service := &consul.AgentServiceRegistration{
@@ -59,7 +60,7 @@ func (r *Registry) Register() error {
 		Name:    r.serviceName,
 		Tags:    tags,
 		Port:    80,
-		Address: ip,
+		Address: GetLocalIP(),
 		Check: &consul.AgentServiceCheck{
 			TTL: "20s",
 			DeregisterCriticalServiceAfter: "30s",
@@ -68,7 +69,7 @@ func (r *Registry) Register() error {
 	}
 
 	err := r.client.Agent().ServiceRegister(service)
-	log.Printf("Registered service '%s' in consul (err = %s);", r.serviceName, err)
+	log.Printf("Registered service '%s' in consul (err = %v);", r.serviceName, err)
 
 	t := time.NewTicker(10 * time.Second)
 	go func() {

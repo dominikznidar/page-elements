@@ -2,7 +2,7 @@ syntax="proto3";
 package specs;
 
 service PageElement {
-	rpc Describe(Empty) returns (PageElementDescription);
+	rpc Describe(RenderArgs) returns (PageElementDescription);
 	rpc Render(RenderArgs) returns (PageRender);
 }
 
@@ -17,7 +17,11 @@ message PageElementIncludes {
 }
 
 message RenderArgs {
-	map<string, string> args = 1;
+	map<string, RenderArg> args = 1;
+}
+
+message RenderArg {
+	repeated string values = 1;
 }
 
 message Empty {

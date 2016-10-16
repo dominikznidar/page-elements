@@ -16,7 +16,7 @@ const (
 
 type server struct{}
 
-func (s *server) Describe(_ context.Context, _ *specs.Empty) (*specs.PageElementDescription, error) {
+func (s *server) Describe(_ context.Context, _ *specs.RenderArgs) (*specs.PageElementDescription, error) {
 	return &specs.PageElementDescription{
 		Name:    elementName,
 		Version: elementVersion,

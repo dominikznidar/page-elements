@@ -26,6 +26,18 @@ services:
     command:
       - /usr/local/bin/micro-page-home-v1
 
+  page-home-v2:
+    extends:
+      service: tmpl
+    command:
+      - /usr/local/bin/micro-page-home-v2
+
+  skeleton:
+    extends:
+      service: tmpl
+    command:
+      - /usr/local/bin/micro-skeleton
+
   navigation:
     extends:
       service: tmpl
@@ -59,6 +71,7 @@ services:
       - -ui
       - -client=0.0.0.0
       - -dns-port=53
+      - -log-level=err
     expose:
       - "53"
       - "53/udp"

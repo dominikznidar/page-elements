@@ -24,6 +24,7 @@ type Config struct {
 	AssetFunc    func(name string) ([]byte, error)
 	AssetDirFunc func(name string) ([]string, error)
 	Server       specs.PageElementServer
+	SystemTool   bool
 }
 
 func (e *Element) Run() {
@@ -31,7 +32,7 @@ func (e *Element) Run() {
 	signal.Notify(c)
 
 	// register itself
-	reg, _ := registry.NewRegistry(e.c.Name, e.c.Version)
+	reg, _ := registry.NewRegistry(e.c.Name, e.c.Version, e.c.SystemTool)
 	_ = reg.Register()
 	// defer unregister
 	defer reg.Unregister()
@@ -54,7 +55,7 @@ func (e *Element) Run() {
 
 func (e *Element) Render(template string, data interface{}) (*specs.PageRender, error) {
 	buf := &bytes.Buffer{}
-	err := e.t.ExecuteTemplate(buf, template, nil)
+	err := e.t.ExecuteTemplate(buf, template, data)
 	if err != nil {
 		return nil, err
 	}
