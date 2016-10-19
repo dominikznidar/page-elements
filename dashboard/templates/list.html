@@ -1,0 +1,20 @@
+<h1>Enabled page elements</h1>
+
+<form action="/save" method="POST">
+<table>
+	{{ range $serviceName, $status := . }}
+	<tr>
+		<td>{{ $serviceName }}</td>
+		<td><select name="{{ $serviceName }}">
+			<option value="">off</option>
+			{{ range $tag := $status.Tags }}
+			<option {{ if eq $tag $status.Enabled }}selected{{ end }}>{{ $tag }}</option>
+			{{ end }}
+		</select></td>
+	</tr>
+	{{ end }}
+</table>
+
+<input type="submit" />
+
+</form>

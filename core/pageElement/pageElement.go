@@ -3,6 +3,7 @@ package pageElement
 import (
 	"bytes"
 	"go-micro-site/core/registry"
+	"go-micro-site/core/render"
 	"go-micro-site/specs"
 	"html/template"
 	"log"
@@ -70,45 +71,7 @@ func MustNew(c *Config) *Element {
 	e := &Element{c: c}
 
 	// Parse templates
-	e.t = getTemplates(e.c)
+	e.t = render.GetTemplates(e.c.AssetDirFunc, e.c.AssetFunc)
 
 	return e
-}
-
-func getTemplates(c *Config) *template.Template {
-	var t, tmpl *template.Template
-
-	// find all tempates
-	views, err := c.AssetDirFunc("templates")
-	if err != nil {
-		log.Fatal("Failed to get views;", err)
-	}
-
-	// parse all the templates
-	for _, v := range views {
-		// initialize t if not done yet
-		if t == nil {
-			t = template.New(v)
-		}
-		// get pointer to current template
-		if v == t.Name() {
-			tmpl = t
-		} else {
-			tmpl = t.New(v)
-		}
-
-		// get the contents of the current template
-		b, err := c.AssetFunc("templates/" + v)
-		if err != nil {
-			log.Fatal("Failed to read a template file;", err)
-		}
-
-		// parse the template
-		_, err = tmpl.Parse(string(b))
-		if err != nil {
-			log.Fatal("Failed to parse a template;", err)
-		}
-	}
-
-	return t
 }

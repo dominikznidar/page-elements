@@ -20,6 +20,14 @@ services:
     environment:
       - DOMAIN=micro.site
 
+  dashboard:
+    extends:
+      service: tmpl
+    command:
+      - /usr/local/bin/micro-dashboard
+    environment:
+      - DOMAIN=dash.micro.site
+
   page-home-v1:
     extends:
       service: tmpl

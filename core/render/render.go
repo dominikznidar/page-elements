@@ -1,6 +1,7 @@
 package render
 
 import (
+	"fmt"
 	"html/template"
 	"log"
 )
@@ -35,13 +36,15 @@ func GetTemplates(assetDir assetDirFunc, asset assetFunc) *template.Template {
 		// get the contents of the current template
 		b, err := asset("templates/" + v)
 		if err != nil {
+			panic("Failed to read a template file;")
 			log.Fatal("Failed to read a template file;", err)
 		}
 
 		// parse the template
 		_, err = tmpl.Parse(string(b))
 		if err != nil {
-			log.Fatal("Failed to parse a template;", err)
+			panic(fmt.Sprintf("Failed to parse a template; %v", err))
+			// log.Fatal("Failed to parse a template;", err)
 		}
 	}
 
