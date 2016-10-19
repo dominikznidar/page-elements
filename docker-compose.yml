@@ -40,6 +40,12 @@ services:
     command:
       - /usr/local/bin/micro-page-home-v2
 
+  page-sub:
+    extends:
+      service: tmpl
+    command:
+      - /usr/local/bin/micro-page-sub
+
   skeleton:
     extends:
       service: tmpl

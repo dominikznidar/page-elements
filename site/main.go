@@ -34,6 +34,8 @@ func main() {
 	mux := bone.New()
 	mux.GetFunc("/pel/:element", renderElementHandler)
 	mux.GetFunc("/pel/:element/:version", renderElementHandler)
+	mux.GetFunc("/", renderPageHandler("page-home"))
+	mux.GetFunc("/sub", renderPageHandler("page-sub"))
 
 	go http.ListenAndServe(":80", mux)
 
@@ -64,10 +66,33 @@ func renderElementHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	renderedHtml := render(cID, args)
+	renderPage(w, cID, args)
+}
 
+func renderPageHandler(element string) func(http.ResponseWriter, *http.Request) {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+
+		var cID clientId
+		args := getFormValuesAsRenderArgs(r)
+
+		format := getQueryValue(r, "format", "pretty")
+		if format == "pretty" {
+			cID = getActiveClientIdFor("skeleton")
+			args.Add("element", element)
+		} else if format == "snippet" {
+			cID = getActiveClientIdFor(element)
+		} else {
+			http.Error(w, "Invalid format", http.StatusBadRequest)
+			return
+		}
+
+		renderPage(w, cID, args)
+	})
+}
+
+func renderPage(w http.ResponseWriter, cID clientId, args *specs.RenderArgs) {
 	w.Header().Add("Content-Type", "text/html")
-	fmt.Fprint(w, renderedHtml)
+	fmt.Fprint(w, render(cID, args))
 }
 
 func getUrlValue(r *http.Request, key, def string) string {
