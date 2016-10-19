@@ -136,6 +136,30 @@ func (r *Registry) FetchCurrentState() (*State, error) {
 	return state, err
 }
 
+func (r *Registry) WaitForNewState(cIndex uint64, waitFor time.Duration) (*State, uint64, error) {
+	// read state from consul
+	res, qm, err := r.client.KV().Get("micro/state", &consul.QueryOptions{
+		WaitIndex: cIndex,
+		WaitTime:  waitFor,
+	})
+	if err != nil {
+		return nil, 0, err
+	}
+	if res == nil {
+		return &State{}, qm.LastIndex, nil
+	}
+
+	log.Printf("Read state from consul: %v; err = %v; qm = %v", res, err, qm)
+	buf := bytes.NewReader(res.Value)
+
+	// decode JSON to State
+	state := &State{}
+	decoder := json.NewDecoder(buf)
+	err = decoder.Decode(state)
+
+	return state, qm.LastIndex, err
+}
+
 func (r *Registry) UpdateState(newState State) error {
 	buf := bytes.NewBuffer(nil)
 	enc := json.NewEncoder(buf)

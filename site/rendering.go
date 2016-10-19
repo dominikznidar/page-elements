@@ -189,7 +189,7 @@ func (q *renderingQueue) addToQueue(cID clientId, args *specs.RenderArgs, initit
 	// start queueing up includes
 	incQueue := map[clientId]bool{}
 	for _, inc := range d.GetIncludes() {
-		subCID := clientId{inc.Name, "v1"}
+		subCID := getActiveClientIdFor(inc.Name)
 		go q.addToQueue(subCID, args, false, deltach, errch)
 		incQueue[subCID] = false
 	}

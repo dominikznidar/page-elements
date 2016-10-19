@@ -28,6 +28,9 @@ func main() {
 	clients = newClientConnections()
 	defer clients.Close()
 
+	// initialize state
+	initState(reg)
+
 	mux := bone.New()
 	mux.GetFunc("/pel/:element", renderElementHandler)
 	mux.GetFunc("/pel/:element/:version", renderElementHandler)
@@ -43,7 +46,7 @@ func main() {
 
 func renderElementHandler(w http.ResponseWriter, r *http.Request) {
 	el := getUrlValue(r, "element", "")
-	version := getUrlValue(r, "version", "v1")
+	version := getUrlValue(r, "version", getVersionFor(el))
 	format := getQueryValue(r, "format", "pretty")
 
 	var (
@@ -52,7 +55,7 @@ func renderElementHandler(w http.ResponseWriter, r *http.Request) {
 	args := getFormValuesAsRenderArgs(r)
 
 	if format == "pretty" {
-		cID = clientId{name: "skeleton", version: "v1"}
+		cID = getActiveClientIdFor("skeleton")
 		args.Add("element", el)
 	} else if format == "snippet" {
 		cID = clientId{el, version}
