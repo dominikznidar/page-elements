@@ -5,7 +5,7 @@ BUILDLESS_CONTAINERS := consul traefik
 .PHONY: vendor specs
 
 up: up/consul up/traefik wait up/site up/page-home-v1 up/header up/footer \
-	up/recommendations up/navigation
+	up/recommendations up/navigation up/skeleton
 
 up/%: build/% stop/%
 	docker-compose up -d $*

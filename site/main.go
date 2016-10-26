@@ -92,7 +92,12 @@ func renderPageHandler(element string) func(http.ResponseWriter, *http.Request) 
 
 func renderPage(w http.ResponseWriter, cID clientId, args *specs.RenderArgs) {
 	w.Header().Add("Content-Type", "text/html")
-	fmt.Fprint(w, render(cID, args))
+	r, err := render(cID, args)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusOK)
+		return
+	}
+	fmt.Fprint(w, r)
 }
 
 func getUrlValue(r *http.Request, key, def string) string {

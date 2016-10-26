@@ -27,6 +27,9 @@ func newClientConnections() *clientConnections {
 }
 
 func (c *clientConnections) GetById(cID clientId) (specs.PageElementClient, error) {
+	if cID.version == "off" {
+		return nil, fmt.Errorf("Can't connect to client (%s) that is marked as off", cID.name)
+	}
 	// return an already existing client if possible
 	if client, ok := c.storage[cID]; ok {
 		return client.client, nil

@@ -42,65 +42,6 @@ type queuedRenderResult struct {
 	render *specs.PageRender
 }
 
-// func render(cID clientId, args *specs.RenderArgs) string {
-// 	go render2(cID, args)
-// 	tree := buildRenderTree(cID, args)
-// 	render := renderTree(tree, args)
-// 	return parseTree(cID, render)
-// }
-
-// func buildRenderTree(cID clientId, args *specs.RenderArgs) renderTreeEl {
-// 	tree := renderTreeEl{}
-// 	tree[cID] = renderTreeEl{}
-
-// 	c, err := clients.GetById(cID)
-// 	if err != nil {
-// 		log.Printf("Failed to get client for %v (err = %v)", cID, err)
-// 		return tree
-// 	}
-
-// 	d, err := c.Describe(context.Background(), args)
-// 	if err != nil {
-// 		log.Printf("Failed to fetch description of %v (err = %v)", cID, err)
-// 		return tree
-// 	}
-
-// 	for _, inc := range d.Includes {
-// 		incCID := clientId{inc.Name, "v1"}
-// 		incTree := buildRenderTree(incCID, args)
-// 		tree[cID][incCID] = incTree[incCID]
-// 	}
-
-// 	return tree
-// }
-
-// func renderTree(tree renderTreeEl, args *specs.RenderArgs) renderedTree {
-// 	rtree := renderedTree{}
-
-// 	for cID, subtree := range tree {
-// 		r, err := renderElement(cID, args)
-// 		if err != nil {
-// 			log.Println("Failed to render element %v (err = %v)", cID, err)
-// 			continue
-// 		}
-
-// 		rtree[cID] = renderedTreeContents{r, renderTree(subtree, args)}
-// 	}
-
-// 	return rtree
-// }
-
-// func parseTree(cID clientId, tree renderedTree) string {
-// 	cHtml := tree[cID].render.Html
-
-// 	for subCID, _ := range tree[cID].tree {
-// 		re := regexp.MustCompile(`<element>` + subCID.name + `</element>`)
-// 		cHtml = re.ReplaceAllString(cHtml, parseTree(subCID, tree[cID].tree))
-// 	}
-
-// 	return cHtml
-// }
-
 func renderElement(cID clientId, args *specs.RenderArgs) (*specs.PageRender, error) {
 	c, err := clients.Get(cID.name, cID.version)
 	if err != nil {
@@ -121,11 +62,11 @@ func describeElement(cID clientId, args *specs.RenderArgs) (*specs.PageElementDe
 	return c.Describe(context.Background(), args)
 }
 
-func render(cID clientId, args *specs.RenderArgs) string {
+func render(cID clientId, args *specs.RenderArgs) (string, error) {
 	q := newRenderingQueue()
 	if err := q.buildQueue(cID, args); err != nil {
 		log.Printf("Failed to build the render queue; err = %v", err)
-		return ""
+		return "", err
 	}
 
 	// log.Printf("Done with building the queue; %v", q)
@@ -133,7 +74,7 @@ func render(cID clientId, args *specs.RenderArgs) string {
 	output, _ := q.render()
 	// log.Printf("Rendered the page; err = %v; page = %v", err, output)
 
-	return output.Html
+	return output.Html, nil
 }
 
 func newRenderingQueue() *renderingQueue {
@@ -145,9 +86,9 @@ func (q *renderingQueue) buildQueue(cID clientId, args *specs.RenderArgs) error 
 	q.topElement = cID
 
 	deltach := make(chan int)
+	defer close(deltach)
 	errch := make(chan error)
 	defer close(errch)
-	defer close(deltach)
 
 	go q.addToQueue(cID, args, true, deltach, errch)
 
@@ -175,13 +116,15 @@ func (q *renderingQueue) addToQueue(cID clientId, args *specs.RenderArgs, initit
 	d, err := describeElement(cID, args)
 	if err != nil {
 		log.Printf("Failed to get description for %v while adding element to queue (err = %v)", cID, err)
-		deltach <- -1
 
 		// send error back for initial element
 		if inititalElement {
 			errch <- err
+			return
 		}
 
+		// decrease todo list
+		deltach <- -1
 		return
 	}
 	// log.Printf("Received description for %v (%v)", cID, d)
@@ -269,7 +212,7 @@ func (q *renderingQueue) getGluedElement(cID clientId) (*specs.PageRender, error
 	r := q.queue[cID].render
 	for subCID, _ := range q.queue[cID].queue {
 		replacement := ""
-		if q.queue[subCID].status >= statusDone {
+		if qEl, ok := q.queue[subCID]; ok && qEl.status >= statusDone {
 			replacementEl, _ := q.getGluedElement(subCID)
 			replacement = replacementEl.Html
 		}
