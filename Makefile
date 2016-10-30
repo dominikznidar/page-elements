@@ -5,7 +5,8 @@ BUILDLESS_CONTAINERS := consul traefik
 .PHONY: vendor specs
 
 up: up/consul up/traefik wait up/site up/page-home-v1 up/header up/footer \
-	up/recommendations up/navigation up/skeleton
+	up/recommendations up/navigation up/skeleton up/page-sub up/dashboard \
+	up/page-home-v2
 
 up/%: build/% stop/%
 	docker-compose up -d $*
@@ -20,11 +21,8 @@ build/%:
 	# build it
 	$(DOCKER_RUN) -w /go/src/go-micro-site/$* golang:1.7.1-alpine go build -o ../bin/micro-$*
 
-build/consul:
-	@echo "Nothing to build"
-
-build/traefik:
-	@echo "Nothing to build"
+build/consul: ;
+build/traefik: ;
 
 logs:
 	docker-compose logs -f --tail=0

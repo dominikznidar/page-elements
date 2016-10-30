@@ -1,6 +1,6 @@
 <nav>
 	<ul class="nav nav-pills pull-right">
-		<li role="presentation" class="active"><a href="/">Home</a></li>
-		<li role="presentation"><a href="/sub">Sub Page</a></li>
+		<li role="presentation"{{ if eq (.Get "element") "page-home" }} class="active"{{ end }}><a href="/">Home</a></li>
+		<li role="presentation"{{ if eq (.Get "element") "page-sub" }} class="active"{{ end }}><a href="/sub">Sub Page</a></li>
 	</ul>
 </nav>

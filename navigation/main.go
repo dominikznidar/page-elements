@@ -23,8 +23,8 @@ func (s *server) Describe(_ context.Context, _ *specs.RenderArgs) (*specs.PageEl
 	}, nil
 }
 
-func (s *server) Render(_ context.Context, _ *specs.RenderArgs) (*specs.PageRender, error) {
-	return element.Render("template.html", nil)
+func (s *server) Render(_ context.Context, args *specs.RenderArgs) (*specs.PageRender, error) {
+	return element.Render("template.html", args)
 }
 
 func main() {

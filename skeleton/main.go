@@ -31,7 +31,7 @@ func (s *server) Describe(_ context.Context, args *specs.RenderArgs) (*specs.Pag
 }
 
 func (s *server) Render(_ context.Context, args *specs.RenderArgs) (*specs.PageRender, error) {
-	return element.Render("template.html", struct{ SubElement string }{args.Get("element")})
+	return element.Render("template.html", args)
 }
 
 func main() {

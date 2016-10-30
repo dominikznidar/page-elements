@@ -5,6 +5,7 @@ import (
 	"go-micro-site/specs"
 	"log"
 	"regexp"
+	"sync"
 )
 
 const (
@@ -26,7 +27,9 @@ type renderedTreeContents struct {
 
 type renderingQueue struct {
 	queue      map[clientId]*queueElement
+	queuemu    sync.Mutex
 	args       *specs.RenderArgs
+	argsmu     sync.Mutex
 	topElement clientId
 }
 
@@ -137,10 +140,12 @@ func (q *renderingQueue) addToQueue(cID clientId, args *specs.RenderArgs, initit
 		incQueue[subCID] = false
 	}
 
+	q.queuemu.Lock()
 	q.queue[cID] = &queueElement{
 		queue:               incQueue,
 		requiresSubElements: inititalElement,
 	}
+	q.queuemu.Unlock()
 
 	deltach <- (-1 + len(d.GetIncludes()))
 }
@@ -155,8 +160,12 @@ renderLoop:
 	for {
 		select {
 		case r := <-ch:
+
+			q.queuemu.Lock()
 			q.queue[r.cID].status = statusDone
 			q.queue[r.cID].render = r.render
+			q.queuemu.Unlock()
+			q.updateArgs(r.render)
 
 			// log.Printf("Received a new render for %v (%v)", r.cID, r.render)
 
@@ -175,12 +184,16 @@ renderLoop:
 }
 
 func (q *renderingQueue) startRendering(ch chan *queuedRenderResult) {
+	// q.queuemu.Lock()
+	// defer q.queuemu.Unlock()
 	for cID, el := range q.queue {
 		if el.status == statusReady && (!el.requiresSubElements || el.subElementsDone(q)) {
 			elCID := cID
+			q.queuemu.Lock()
 			q.queue[elCID].status = statusPending
+			q.queuemu.Unlock()
 			go (func(elCID clientId) {
-				r, err := renderElement(elCID, q.args)
+				r, err := renderElement(elCID, q.getArgs())
 				if err != nil {
 					log.Printf("Failed to render %v; err = %v", elCID, err)
 				}
@@ -194,6 +207,8 @@ func (q *renderingQueue) startRendering(ch chan *queuedRenderResult) {
 }
 
 func (q *renderingQueue) allRendered() bool {
+	// q.queuemu.Lock()
+	// defer q.queuemu.Unlock()
 	for _, el := range q.queue {
 		if el.status != statusDone {
 			// log.Printf("%v not done yet (%d)", cID, el.status)
@@ -209,6 +224,9 @@ func (q *renderingQueue) glueTogether() (*specs.PageRender, error) {
 }
 
 func (q *renderingQueue) getGluedElement(cID clientId) (*specs.PageRender, error) {
+	// q.queuemu.Lock()
+	// defer q.queuemu.Unlock()
+
 	r := q.queue[cID].render
 	for subCID, _ := range q.queue[cID].queue {
 		replacement := ""
@@ -224,10 +242,25 @@ func (q *renderingQueue) getGluedElement(cID clientId) (*specs.PageRender, error
 	return r, nil
 }
 
+func (q *renderingQueue) getArgs() *specs.RenderArgs {
+	q.argsmu.Lock()
+	defer q.argsmu.Unlock()
+	return q.args
+}
+
+func (q *renderingQueue) updateArgs(r *specs.PageRender) {
+	q.argsmu.Lock()
+	defer q.argsmu.Unlock()
+
+	if t := r.PageTitle; t != "" {
+		q.args.Add("pageTitle", t)
+	}
+}
+
 func (e *queueElement) subElementsDone(q *renderingQueue) bool {
 	for cID, status := range e.queue {
 		if status != true {
-			if q.queue[cID].status == statusDone {
+			if qEl, ok := q.queue[cID]; ok && qEl.status >= statusDone {
 				e.queue[cID] = true
 				continue
 			}

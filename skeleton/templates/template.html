@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
 
-    <title>--TITLE--</title>
+    <title>{{ .Get "pageTitle" }}</title>
     <meta name="description" content="--META-DESCRIPTION--">
     <meta name="author" content="--META-AUTHOR--">
 
@@ -109,7 +109,7 @@
 
 <body>
     <div class="container">
-        <element>{{ .SubElement }}</element>
+        <element>{{ .Get "element" }}</element>
     </div>
 </body>
 </html>
