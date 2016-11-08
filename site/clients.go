@@ -3,7 +3,9 @@ package main
 import (
 	"fmt"
 	"go-micro-site/specs"
+	"log"
 
+	"github.com/bogdanovich/dns_resolver"
 	"google.golang.org/grpc"
 )
 
@@ -35,8 +37,14 @@ func (c *clientConnections) GetById(cID clientId) (specs.PageElementClient, erro
 		return client.client, nil
 	}
 
-	// looks like we need to create a new one
-	conn, err := grpc.Dial(fmt.Sprintf("%s.%s.service.consul:80", cID.version, cID.name), grpc.WithInsecure())
+	// looks like we need to open a new connection
+	// get the IP of the element
+	ip, err := resolveClientAddr(cID)
+	if err != nil {
+		return nil, err
+	}
+	// connect to it
+	conn, err := grpc.Dial(fmt.Sprintf("%s:80", ip), grpc.WithInsecure())
 	if err != nil {
 		return nil, err
 	}
@@ -58,4 +66,15 @@ func (c *clientConnections) Close() {
 	for _, client := range c.storage {
 		client.conn.Close()
 	}
+}
+
+func resolveClientAddr(cID clientId) (string, error) {
+	resolver := dns_resolver.New([]string{"consul"})
+	ips, err := resolver.LookupHost(fmt.Sprintf("%s.%s.service.consul", cID.version, cID.name))
+	if err != nil {
+		log.Printf("Failed to lookup an address; err = %+v", err)
+		return "", err
+	}
+
+	return ips[0].String(), nil
 }
