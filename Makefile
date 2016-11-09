@@ -12,6 +12,9 @@ up/elements: $(addprefix up/,$(ELEMENTS))
 up/%: build/% stop/%
 	docker-compose up -d $*
 
+stop:
+	docker-compose stop
+
 stop/%:
 	docker-compose stop $*
 
@@ -38,6 +41,7 @@ specs:
 
 clean:
 	rm bin/*
+	rm -f */bindata.go
 	docker-compose down
 
 wait/%:
