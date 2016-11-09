@@ -1,12 +1,13 @@
 DOCKER_RUN := docker run --rm -it -v $$PWD:/go/src/page-elements
 SUPPORTED_ASSET_DIRS := templates
 BUILDLESS_CONTAINERS := consul traefik
+ELEMENTS = site page-home-v1 header footer recommendations navigation skeleton page-sub dashboard page-home-v2
 
 .PHONY: vendor specs
 
-up: up/consul up/traefik wait up/site up/page-home-v1 up/header up/footer \
-	up/recommendations up/navigation up/skeleton up/page-sub up/dashboard \
-	up/page-home-v2
+up: up/consul up/traefik wait/10 up/elements
+
+up/elements: $(addprefix up/,$(ELEMENTS))
 
 up/%: build/% stop/%
 	docker-compose up -d $*
@@ -39,6 +40,6 @@ clean:
 	rm bin/*
 	docker-compose down
 
-wait:
-	@echo "Waiting a while for consul to wake up ..."
-	sleep 10
+wait/%:
+	@echo "Waiting for $* seconds for consul to wake up ..."
+	sleep $*

@@ -38,6 +38,7 @@ func main() {
 	mux.GetFunc("/sub", renderPageHandler("page-sub"))
 
 	go http.ListenAndServe(":80", mux)
+	log.Println("Started to listen on :80")
 
 	// wait for signal
 	select {

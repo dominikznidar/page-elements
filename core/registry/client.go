@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"log"
 	"net"
 	"os"
 	"regexp"
@@ -76,7 +75,9 @@ func (r *Registry) Register() error {
 	}
 
 	err := r.client.Agent().ServiceRegister(service)
-	log.Printf("Registered service '%s' in consul (err = %v);", r.serviceName, err)
+	if err != nil {
+		return err
+	}
 
 	t := time.NewTicker(10 * time.Second)
 	go func() {
@@ -90,26 +91,19 @@ func (r *Registry) Register() error {
 
 func (r *Registry) Unregister() error {
 	err := r.client.Agent().ServiceDeregister(r.serviceID)
-	log.Printf("Unregistered the service '%s'", r.serviceName)
 	return err
 }
 
 func (r *Registry) FetchAvailableClients() (Clients, error) {
 	// fetch all services from catalog
 	services, _, _ := r.client.Catalog().Services(nil)
-	log.Printf("Fetched following services: %v", services)
 
 	clients := Clients{}
 	for serviceName, tags := range services {
 		if !containsMicroElementTag(tags) {
 			continue
 		}
-
-		versions := getVersionTags(tags)
-
-		log.Printf("Found valid element %s:%v", serviceName, versions)
-
-		clients[serviceName] = versions
+		clients[serviceName] = getVersionTags(tags)
 	}
 
 	return clients, nil
@@ -117,15 +111,13 @@ func (r *Registry) FetchAvailableClients() (Clients, error) {
 
 func (r *Registry) FetchCurrentState() (*State, error) {
 	// read state from consul
-	res, qm, err := r.client.KV().Get("micro/state", nil)
+	res, _, err := r.client.KV().Get("micro/state", nil)
 	if err != nil {
 		return nil, err
 	}
 	if res == nil {
 		return &State{}, nil
 	}
-
-	log.Printf("Read state from consul: %v; err = %v; qm = %v", res, err, qm)
 	buf := bytes.NewReader(res.Value)
 
 	// decode JSON to State
@@ -148,8 +140,6 @@ func (r *Registry) WaitForNewState(cIndex uint64, waitFor time.Duration) (*State
 	if res == nil {
 		return &State{}, qm.LastIndex, nil
 	}
-
-	log.Printf("Read state from consul: %v; err = %v; qm = %v", res, err, qm)
 	buf := bytes.NewReader(res.Value)
 
 	// decode JSON to State

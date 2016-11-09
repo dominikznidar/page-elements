@@ -51,16 +51,12 @@ func renderPageHandler(reg *registry.Registry) func(http.ResponseWriter, *http.R
 	return func(w http.ResponseWriter, r *http.Request) {
 		// get state
 		state, _ := reg.FetchCurrentState()
+
 		// get available clients
 		clients, _ := reg.FetchAvailableClients()
-
-		log.Printf("Current state = %v", state)
-		log.Printf("Available clients = %v", clients)
-
-		// join state and clients toggether
-
+		
+		// render it
 		w.Header().Set("Content-type", "text/html")
-
 		err := t.Execute(w, composeState(state, clients))
 		if err != nil {
 			log.Printf("Failed to render the template; err = %v", err)
@@ -74,11 +70,9 @@ func storeStateHandler(reg *registry.Registry) func(http.ResponseWriter, *http.R
 		newState := registry.State{}
 		r.ParseForm()
 		for serviceName, values := range r.Form {
-			log.Printf("received service %s with values %v", serviceName, values)
 			newState[serviceName] = values[0]
 		}
 
-		log.Printf("Composed a new state: %v", newState)
 		reg.UpdateState(newState)
 
 		// redirect back to the list

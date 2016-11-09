@@ -72,11 +72,7 @@ func render(cID clientId, args *specs.RenderArgs) (string, error) {
 		return "", err
 	}
 
-	// log.Printf("Done with building the queue; %v", q)
-
 	output, _ := q.render()
-	// log.Printf("Rendered the page; err = %v; page = %v", err, output)
-
 	return output.Html, nil
 }
 
@@ -101,8 +97,6 @@ func (q *renderingQueue) buildQueue(cID clientId, args *specs.RenderArgs) error 
 		select {
 		case i := <-deltach:
 			todo += i
-			// log.Printf("Updating with %d item(s) (now have %d)", i, todo)
-
 			if todo == 0 {
 				return nil
 			}
@@ -130,7 +124,6 @@ func (q *renderingQueue) addToQueue(cID clientId, args *specs.RenderArgs, initit
 		deltach <- -1
 		return
 	}
-	// log.Printf("Received description for %v (%v)", cID, d)
 
 	// start queueing up includes
 	incQueue := map[clientId]bool{}
@@ -167,14 +160,9 @@ renderLoop:
 			q.queuemu.Unlock()
 			q.updateArgs(r.render)
 
-			// log.Printf("Received a new render for %v (%v)", r.cID, r.render)
-
 			if q.allRendered() {
-				// return nil, nil
-				// log.Println("all done with rendering")
 				break renderLoop
 			}
-			// log.Println("not everything ready yet ...")
 
 			q.startRendering(ch)
 		}
@@ -184,8 +172,6 @@ renderLoop:
 }
 
 func (q *renderingQueue) startRendering(ch chan *queuedRenderResult) {
-	// q.queuemu.Lock()
-	// defer q.queuemu.Unlock()
 	for cID, el := range q.queue {
 		if el.status == statusReady && (!el.requiresSubElements || el.subElementsDone(q)) {
 			elCID := cID
@@ -207,11 +193,8 @@ func (q *renderingQueue) startRendering(ch chan *queuedRenderResult) {
 }
 
 func (q *renderingQueue) allRendered() bool {
-	// q.queuemu.Lock()
-	// defer q.queuemu.Unlock()
 	for _, el := range q.queue {
 		if el.status != statusDone {
-			// log.Printf("%v not done yet (%d)", cID, el.status)
 			return false
 		}
 	}
@@ -224,9 +207,6 @@ func (q *renderingQueue) glueTogether() (*specs.PageRender, error) {
 }
 
 func (q *renderingQueue) getGluedElement(cID clientId) (*specs.PageRender, error) {
-	// q.queuemu.Lock()
-	// defer q.queuemu.Unlock()
-
 	r := q.queue[cID].render
 	for subCID, _ := range q.queue[cID].queue {
 		replacement := ""

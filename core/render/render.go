@@ -37,14 +37,12 @@ func GetTemplates(assetDir assetDirFunc, asset assetFunc) *template.Template {
 		b, err := asset("templates/" + v)
 		if err != nil {
 			panic("Failed to read a template file;")
-			log.Fatal("Failed to read a template file;", err)
 		}
 
 		// parse the template
 		_, err = tmpl.Parse(string(b))
 		if err != nil {
 			panic(fmt.Sprintf("Failed to parse a template; %v", err))
-			// log.Fatal("Failed to parse a template;", err)
 		}
 	}
 

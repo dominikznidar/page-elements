@@ -2,7 +2,6 @@ package main
 
 import (
 	"page-elements/core/registry"
-	"log"
 	"time"
 )
 
@@ -22,10 +21,7 @@ func initState(reg *registry.Registry) error {
 
 func startPollingState(reg *registry.Registry) {
 	for {
-		log.Printf("Fetching new state from consul; cIndex = %d", cstate.cIndex)
-		state, cIndex, err := reg.WaitForNewState(cstate.cIndex, 30*time.Second)
-		log.Printf("Received new state from consul; state = %+v; cIndex = %d; err = %v", state, cIndex, err)
-
+		state, cIndex, _ := reg.WaitForNewState(cstate.cIndex, 30*time.Second)
 		cstate.cIndex = cIndex
 		cstate.state = state
 	}
