@@ -1,8 +1,8 @@
 package main
 
 import (
-	"go-micro-site/core/registry"
-	"go-micro-site/core/render"
+	"page-elements/core/registry"
+	"page-elements/core/render"
 	"html/template"
 	"log"
 	"net/http"

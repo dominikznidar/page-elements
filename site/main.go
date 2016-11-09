@@ -7,8 +7,8 @@ import (
 	"os"
 	"os/signal"
 
-	"go-micro-site/core/registry"
-	"go-micro-site/specs"
+	"page-elements/core/registry"
+	"page-elements/specs"
 
 	"github.com/go-zoo/bone"
 )

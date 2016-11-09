@@ -2,9 +2,9 @@ package pageElement
 
 import (
 	"bytes"
-	"go-micro-site/core/registry"
-	"go-micro-site/core/render"
-	"go-micro-site/specs"
+	"page-elements/core/registry"
+	"page-elements/core/render"
+	"page-elements/specs"
 	"html/template"
 	"log"
 	"net"

@@ -3,8 +3,8 @@ package main
 import (
 	"golang.org/x/net/context"
 
-	"go-micro-site/core/pageElement"
-	"go-micro-site/specs"
+	"page-elements/core/pageElement"
+	"page-elements/specs"
 )
 
 type server struct{}

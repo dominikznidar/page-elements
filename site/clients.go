@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"go-micro-site/specs"
+	"page-elements/specs"
 	"log"
 
 	"github.com/bogdanovich/dns_resolver"

@@ -1,7 +1,7 @@
 package main
 
 import (
-	"go-micro-site/core/registry"
+	"page-elements/core/registry"
 	"log"
 	"time"
 )
