@@ -1,7 +1,7 @@
 version: "2"
 services:
   tmpl:
-    image: golang:1.7.1-alpine
+    image: golang:1.7.4-alpine
     volumes:
       - ./bin:/usr/local/bin
     environment:
@@ -74,8 +74,13 @@ services:
     command:
       - /usr/local/bin/micro-recommendations
 
+  waitForConsul:
+    image: lew21/waitfor
+    command:
+      - consul:8500
+
   consul:
-    image: consul:v0.7.0
+    image: consul:0.7.2
     command:
       - agent
       - -server
@@ -93,7 +98,10 @@ services:
       - CONSUL_ALLOW_PRIVILEGED_PORTS=1
 
   traefik:
-    image: traefik:v1.0.3
+    image: traefik:v1.1.2-alpine
+    command:
+      - -l
+      - WARN
     volumes:
       - ./services/traefik/traefik.toml:/etc/traefik/traefik.toml
     ports:

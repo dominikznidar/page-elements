@@ -5,9 +5,7 @@ ELEMENTS = site page-home-v1 header footer recommendations navigation skeleton p
 
 .PHONY: vendor specs
 
-up: up/consul up/traefik wait/10 up/elements
-
-up/elements: $(addprefix up/,$(ELEMENTS))
+up: up/consul up/traefik wait $(addprefix up/,$(ELEMENTS))
 
 up/%: build/% stop/%
 	docker-compose up -d $*
@@ -23,7 +21,7 @@ build/%:
 	# run go-bindata
 	$(if $(ASSET_DIRS), $(DOCKER_RUN) -w /go/src/page-elements/$* dominikznidar/go-bindata $(ASSET_DIRS))
 	# build it
-	$(DOCKER_RUN) -w /go/src/page-elements/$* golang:1.7.1-alpine go build -o ../bin/micro-$*
+	$(DOCKER_RUN) -w /go/src/page-elements/$* golang:1.7.4-alpine go build -o ../bin/micro-$*
 
 build/consul: ;
 build/traefik: ;
@@ -44,6 +42,6 @@ clean:
 	rm -f */bindata.go
 	docker-compose down
 
-wait/%:
-	@echo "Waiting for $* seconds for consul to wake up ..."
-	sleep $*
+wait:
+	@echo "Wait for consul to wake up"
+	docker-compose up waitForConsul
